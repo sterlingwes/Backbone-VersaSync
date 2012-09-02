@@ -1,0 +1,8 @@
+<script src="libs/socket.io/socket.io.js"></script>
+<script>
+  var socket = io.connect('ws://192.168.1.147');
+  socket.on('news', function (data) {
+    console.log(data);
+    socket.emit('my other event', { my: 'data' });
+  });
+</script>
