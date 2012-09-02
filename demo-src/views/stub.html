@@ -1,4 +1,10 @@
 <div class="listitem">
-	<h2><%= name %></h2>
-	<p><%= text %></p>
+	<h2><%- name?name:"Faceless" %></h2>
+	<p><%- text?text:"No bio." %><%= (sexWith.length>0) ? " Also, has sex with:" : "" %></p>
+	<% if(sexWith.length>0) { %>
+		<ul>
+			<% _.each(sexWith, function(id) { print("<li>"+id+"</li>"); }); %>
+		</ul>
+	<% } %>
+	<div class="close" data-itemid="<%= _id %>">&times;</div>
 </div>

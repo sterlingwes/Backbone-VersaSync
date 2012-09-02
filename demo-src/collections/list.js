@@ -6,7 +6,7 @@ define([
 ], function($, _, Backbone, mItem) {
 
 	var list 		= new Backbone.Collection;
-		list.wsSync	= "item";
+		list.wsSync	= list.lsSync = "item";
 		
 	return list;
 

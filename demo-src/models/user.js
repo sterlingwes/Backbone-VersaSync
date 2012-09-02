@@ -4,18 +4,9 @@ define([
 	'Backbone'
 ], function($, _, Backbone) {
 
-	var UserModel = Backbone.Model.extend({
+	var UserModel = new Backbone.Model;
+	UserModel.lsSync = "user";
 	
-		idAttribute: "_id",
-	
-		initialize: function() {},
-		
-		sync: function(method, model, options) {},
-		
-		validate: function(set) {}
-		
-	});
-	
-	return new UserModel;
+	return UserModel;
 
 });

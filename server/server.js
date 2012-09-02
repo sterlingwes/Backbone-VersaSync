@@ -10,7 +10,7 @@ var conn    = app.listen(8081);
 var io      = require('socket.io').listen(conn);
 
 app.get('/', function (req, res) {
-    res.end('Hello HTTP Front End :)');
+    res.end('This node app just does sockets!');
 });
 
 mgoose.connect('mongodb://localhost/versalist');
@@ -18,14 +18,17 @@ mgoose.connect('mongodb://localhost/versalist');
 var Schema = mgoose.Schema;
 
 var Items = mgoose.model('Item', new Schema({
-    name:   {type: String},
-    text:   {type: String}
+    name:   	{type: String},
+    text:   	{type: String},
+	sexWith:	[String] // unique ids map to other 'nodes'
 }));
 
+// we're namespacing the sync events - change /versasync to whatever is used by the client app
 var wsSync = io
     .of('/versasync')
     .on('connection', function(socket) {
 
+		// fetch
         socket.on('read:item', function() {
             console.log('Request to read:item');
             Items.find({}, function(err,items) {
@@ -35,20 +38,40 @@ var wsSync = io
             });
         });
         
+		// add / create
         socket.on('create:item', function(data) {
+			console.log('Request to create:item', data);
             var i = new Items(data);
             i.save(function(err) {
                 if(err) return socket.emit('create:error', err);
                 socket.emit('create:item', i);
             });
         });
+		
+		// update
+		socket.on('update:item', function(data) {
+			console.log('Request to update:item', data);
+			Items.update({_id:data._id},data,function(err,r) {
+				if(err) return socket.emit('update:error', err);
+				socket.emit('update:item',data);
+			});
+		});
+		
+		// remove
+		socket.on('delete:item', function(data) {
+			console.log('Request to delete:item', data);
+			Items.remove({_id:data._id}, function(err,r) {
+				if(err) return socket.emit('delete:error', err);
+				socket.emit('delete:item',data);
+			});
+		});
     });
 
 io.sockets.on('connection', function(socket) {
-    // all other connections
+    // all other non-namespaced connections
 });
 
-// pre-populate some data
+// pre-populate some data for the initial fetch
 Items.update({name:"Tyrion Lannister"},{name:"Tyrion Lannister", text:"What Tyrion lacks in size and strength, he makes up for in mental acuity."},{upsert:true}, function(){});
 Items.update({name:"Daenerys Targaryen"},{name:"Daenerys Targaryen", text:"Princess of House Targaryen and a newly widowed khaleesi, she lives in exile in Essos."},{upsert:true}, function(){});
 Items.update({name:"Ygritte"},{name:"Ygritte", text:"The fiesty redhead wildling north of the wall. Kissed by fire."},{upsert:true}, function(){});
