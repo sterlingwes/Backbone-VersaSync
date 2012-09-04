@@ -11,15 +11,41 @@
 	var VS = {
 	
 		globalEvents: {
-			'connect':			'Connected.',
-			'connecting':		'Connecting.',
-			'disconnect':		'Disconnected.',
-			'connect_failed':	'Connection Failed.',
-			'error':			'Connection Error.',
-			'reconnect_failed':	'Failed to Reconnect.',
-			'reconnect':		'Connected.',
-			'reconnecting':		'Reconnecting.'
+			'connect': {
+				msg:	'Connected.',
+				status:	true
+			},
+			'connecting': {
+				msg:	'Connecting.',
+				status:	true
+			},
+			'disconnect': {
+				msg:	'Disconnected.',
+				status:	false
+			},
+			'connect_failed': {
+				msg:	'Connection Failed.',
+				status: false
+			},
+			'error': {
+				msg:	'Connection Error.',
+				status:	false
+			},
+			'reconnect_failed':	{
+				msg:	'Failed to Reconnect.',
+				status:	false
+			},
+			'reconnect': {
+				msg:	'Connected.',
+				status:	true
+			},
+			'reconnecting': {
+				msg:	'Reconnecting.',
+				status:	false
+			}
 		},
+		
+		connected: false,
 	
 		connect: function(opts) {
 			if(!opts)		opts 		= {};
@@ -35,7 +61,10 @@
 				
 				// bind our global events
 				_.each(_.keys(this.globalEvents), function(ev) {
-					VS.socket.on(ev, function() { VS.trigger(opts.ns+':'+ev); });
+					VS.socket.on(ev, function() { 
+						VS.connected = VS.globalEvents[ev].status;
+						VS.trigger(opts.ns+':'+ev);
+					});
 				});
 			} else
 				console.warn('Backbone.VersaSync requires the Socket.IO client library to be included.');
@@ -54,22 +83,22 @@
 				};
 			}
 			
-			if(model.lsSync || (model.collection && model.collection.lsSync))
-				Backbone.vsLocalSync.apply(this,[method,model,(socket.connected)?null:options,error]);
+			//if(VS.connected===false && (model.lsSync || (model.collection && model.collection.lsSync)))
+			//	return Backbone.vsLocalSync.apply(this,[method,model,(VS.connected)?null:options,error]);
 			
 			if(!VS.listeners)	VS.listeners = [];
 
-			var ioEvent 	= method+":"+(model.wsSync || model.collection.wsSync),
+			var ioEvent 	= method+":"+(model.wsSync || (model.collection && model.collection.wsSync)),
 				errEvent	= method+":error";
 
-			if(VS.listeners.indexOf(ioEvent)==-1)
+			if(_.indexOf(VS.listeners,ioEvent)==-1)
 				socket.on(ioEvent, function(data) {
-					console.log(ioEvent, data);
+					//console.log(ioEvent, data, model);
 					options.success(data);
 				});
-			if(VS.listeners.indexOf(errEvent)==-1)
+			if(_.indexOf(VS.listeners,errEvent)==-1)
 				socket.on(errEvent, function(data) {
-					console.log(errEvent, data);
+					//console.log(errEvent, data);
 					options.error(data);
 				});
 			
@@ -92,7 +121,7 @@
 		
 		Backbone.vsLocalSync = function(method, model, options, error) {
 		
-			if (typeof options != 'object') {
+			if (options == null || typeof options != 'object') {
 				options = {
 					success: 	(options==null||options==undefined) ? function() {} : options,
 					error: 		(options==null||options==undefined) ? function() {} : error
@@ -115,11 +144,10 @@
 			
 			if(!VS.name)		VS.name = opts.ns;
 			var storeName = (model.lsSync || model.collection.lsSync);
-			var store = localStorage.getItem(VS.name+":"+storeName);
+			var store = localStorage.getItem(VS.name);
 			
-			if(!VS.records)		VS.records = {};
-			if(!VS.records[storeName])
-				VS.records[storeName] = (store && store.split(",")) || [];
+			if(!VS.records)				VS.records = (store && JSON.parse(store)) || {};
+			if(!VS.records[storeName])	VS.records[storeName] = [];
 			if(!VS.save)		
 				VS.save = function() {
 					localStorage.setItem(VS.name, JSON.stringify(VS.records));
@@ -165,8 +193,9 @@
 			if(model.wsSync || (model.collection && model.collection.wsSync))
 				return Backbone.versaSync;
 
-			else if(model.lsSync || (model.collection && model.collection.lsSync))
-				return Backbone.vsLocalSync;
+			console.warn("Using basic Backbone.Sync");
+			//else if(model.lsSync || (model.collection && model.collection.lsSync))
+			//	return Backbone.vsLocalSync;
 				
 			return Backbone.ajaxSync;
 		};

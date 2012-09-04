@@ -33,7 +33,9 @@ require.config({
 				],
 			exports:	'Backbone'
 		}
-	}
+	},
+	
+	waitSeconds: 20
 });
 
 require([

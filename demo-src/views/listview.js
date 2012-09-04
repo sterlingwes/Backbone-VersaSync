@@ -18,7 +18,6 @@ define([
 		var that = this;
 			this.stub = _.template(vStub);
 		cList.on("add remove reset change", function(collection) {
-			console.log('collection changed');
 			that.render();
 		});
 	},
@@ -27,21 +26,28 @@ define([
 		var that = this;
 		this.$el.empty();
 		cList.each(function(item) {
-			if(item && item.name && item.text)
-				that.$el.append(that.stub(item.attributes));
+			if(item && item.get("name") && item.get("text"))
+				that.$el.append(that.stub({
+					model: 	item.attributes,
+					id:		item.id
+				}));
 		});
 		return this;
     },
 	
 	deleteItem: function(ev) {
 		var el = this.$(ev.currentTarget),
-			id = el.data('dataid'),
+			id = el.data('itemid'),
 			it = cList.where({_id:id})[0];
 			
+		console.log('Delete', el,id,it);
 		if(it)	it.destroy({
 			wait:	true,
 			success:function(m,res) {
-				console.log('Item removed, list should update itself',m,res);
+				//console.log('Item removed, list should update itself',m,res);
+			},
+			error:	function(d) {
+				//console.log('Failed destroy',d);
 			}
 		});
 	}

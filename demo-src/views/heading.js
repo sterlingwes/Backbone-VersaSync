@@ -13,7 +13,7 @@ define([
 		var that = this;
 		VS.on("all", function(event) {
 			if(VS.globalEvents[event.replace(VS.options.ns+':','')])
-				that.render(VS.globalEvents[event.replace(VS.options.ns+':','')]);
+				that.render(VS.globalEvents[event.replace(VS.options.ns+':','')].msg);
 		});
 	},
 	

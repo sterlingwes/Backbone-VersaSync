@@ -34,11 +34,11 @@ define([
 		}, {
 			// handle response
 			success: function(m,resp) {
-				console.log('Create Response',m,resp);
-				var sw = cList.where({_id:m.get("_id")})[0];
+				var sw 	= cList.where({_id:sWith})[0];
 				// update cross reference
-				if(sw)	sw.setPush('sexWith',sWith).save();
-			}
+				if(sw)	sw.setPush('sexWith',resp._id,true,true).save();
+			},
+			wait: true
 		});
 		// reset on submit
 		this.$('#name').val('');

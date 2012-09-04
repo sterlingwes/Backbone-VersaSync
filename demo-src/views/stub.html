@@ -1,10 +1,10 @@
 <div class="listitem">
-	<h2><%- name?name:"Faceless" %></h2>
-	<p><%- text?text:"No bio." %><%= (sexWith.length>0) ? " Also, has sex with:" : "" %></p>
-	<% if(sexWith.length>0) { %>
+	<h2><%- model.name?model.name:"Faceless" %></h2>
+	<p><%- model.text?model.text:"No bio." %><%= (model.sexWith.length>0) ? " Also, has sex with:" : "" %></p>
+	<% if(model.sexWith.length>0) { %>
 		<ul>
-			<% _.each(sexWith, function(id) { print("<li>"+id+"</li>"); }); %>
+			<% _.each(model.sexWith, function(id) { print("<li>"+id+"</li>"); }); %>
 		</ul>
 	<% } %>
-	<div class="close" data-itemid="<%= _id %>">&times;</div>
+	<div class="close" data-itemid="<%= id %>">&times;</div>
 </div>

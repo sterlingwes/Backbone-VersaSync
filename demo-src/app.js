@@ -37,11 +37,15 @@ define([
 			VS.connect({
 				host: 'ws://192.168.1.147'
 			});
-			mUser.save(_.compact(_.pick(navigator,
-				'appCodeName','appName','appVersion','platform','vendor')));
+			//mUser.save(_.compact(_.pick(navigator,
+			//	'appCodeName','appName','appVersion','platform','vendor')));
 			vHeader.render();
 			vList.render();
-			cList.fetch();
+			cList.fetch({
+				success: function() {
+					vForm.render();
+				}
+			});
 		}
 	}
 
