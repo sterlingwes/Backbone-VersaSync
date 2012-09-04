@@ -15,7 +15,8 @@ app.get('/', function (req, res) {
 
 mgoose.connect('mongodb://localhost/versalist');
 
-var Schema = mgoose.Schema;
+var Schema = mgoose.Schema,
+    ObjectId = mgoose.Types.ObjectId;
 
 var Items = mgoose.model('Item', new Schema({
     name:   	{type: String},
@@ -41,6 +42,9 @@ var wsSync = io
 		// add / create
         socket.on('create:item', function(data) {
 			console.log('Request to create:item', data);
+		data = JSON.parse(data);
+		delete data._id;
+		console.log(data);
             var i = new Items(data);
             i.save(function(err) {
                 if(err) return socket.emit('create:error', err);
@@ -51,7 +55,10 @@ var wsSync = io
 		// update
 		socket.on('update:item', function(data) {
 			console.log('Request to update:item', data);
-			Items.update({_id:data._id},data,function(err,r) {
+			data = JSON.parse(data);
+			var oid = data._id;
+			delete data._id;
+			Items.update({_id:oid},data,function(err,r) {
 				if(err) return socket.emit('update:error', err);
 				socket.emit('update:item',data);
 			});
@@ -59,8 +66,10 @@ var wsSync = io
 		
 		// remove
 		socket.on('delete:item', function(data) {
-			console.log('Request to delete:item', data);
-			Items.remove({_id:data._id}, function(err,r) {
+			console.log('Request to delete:item');
+			var json = JSON.parse(data);
+			Items.findByIdAndRemove(json._id, function(err,r) {
+				console.log(err,r);
 				if(err) return socket.emit('delete:error', err);
 				socket.emit('delete:item',data);
 			});
